@@ -4,8 +4,14 @@ Module created to query the New Relic API and extract the results to insert them
 import datetime
 import json
 import os
+import time
 
 import requests
+
+from prometheus_client import Gauge, start_http_server
+
+
+g = Gauge('Cost_of_APP', 'Cost of using new relic per application', labelnames=['appName'])
 
 def run_nrquery(select_statement):
     """"
@@ -37,16 +43,16 @@ def extract_results(json_content):
     output = json.loads(json_content)['data']['actor']['account']['nrql']['results']
     return output
 
-def generate_db_insert(list_of_dicts, current_time):
-    """"
-    Generate a list of SQL INSERT statements from the list of dictionaries.
-    """
-    query_list = []
-    for item in list_of_dicts:
-        insert_query=f"INSERT INTO app_usage (date, appName, cost) VALUES ('{current_time}', '{item['appName']}', {item['Cost']});"
-        query_list.append(insert_query)
-
-    return query_list
+#def generate_db_insert(list_of_dicts, current_time):
+#    """"
+#    Generate a list of SQL INSERT statements from the list of dictionaries.
+#    """
+#    query_list = []
+#    for item in list_of_dicts:
+#        insert_query=f"INSERT INTO app_usage (date, appName, cost) VALUES ('{current_time}', '{item['appName']}', {item['Cost']});"
+#        query_list.append(insert_query)
+#
+#    return query_list
 
 
 select_statements=[
@@ -67,12 +73,28 @@ select_statements=[
 
 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-for select_statement in select_statements:
-    #Run the query and extract the results
-    list_of_results=extract_results(run_nrquery(select_statement))
+def main():
+    for select_statement in select_statements:
+        #Run the query and extract the results
+        list_of_results=extract_results(run_nrquery(select_statement))
 
-    #Generate the list of SQL INSERT statements
-    list_of_inserts=generate_db_insert(list_of_results, current_time)
+        
+        for item in list_of_results:
+            #import ipdb
+            #ipdb.set_trace()
+            g.labels(appName=item['appName']).set(item['Cost'])
 
-    for insert in list_of_inserts:
-        print  (insert)
+
+        #Generate the list of SQL INSERT statements
+    #    list_of_inserts=generate_db_insert(list_of_results, current_time)
+
+    #    for insert in list_of_inserts:
+    #        print  (insert)
+
+start_http_server(8000)
+
+while True:
+    main()
+#    import ipdb
+#    ipdb.set_trace()
+    time.sleep(100)
