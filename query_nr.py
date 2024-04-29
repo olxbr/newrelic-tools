@@ -33,7 +33,7 @@ def run_nrquery(select_statement):
                                     }}
                                 }}"""
                 }
-    response = requests.post(url, headers=headers, json=full_query)
+    response = requests.post(url, headers=headers, json=full_query, verify=False)
     return response.text
 
 def extract_results(json_content):
@@ -97,4 +97,4 @@ while True:
     main()
 #    import ipdb
 #    ipdb.set_trace()
-    time.sleep(100)
+    time.sleep(120)
