@@ -22,6 +22,7 @@ jobs:
         with:
           # The complete repository name from ECR {BU}/{TEAM}/{PROJECT} (ex. cross/devtools/devtools-scripts).
           ecr_repository: 'cross/observability/newrelic-migration-exporter'
+          docker_buildkit: 1
           # Comma-separated string of ECR image tags (ex. latest, 1.0.0)
           tags: 'latest,${{env.VERSION}}'
           keep_images: 10
