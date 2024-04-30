@@ -1,7 +1,7 @@
 on: [push]
 jobs:
   ecr:
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux]
     name: Docker build and push to ECR
     env:
       ## Repository must be in the format '<BU>/<SQUAD>/<PROJECT NAME | MY NAME>'
